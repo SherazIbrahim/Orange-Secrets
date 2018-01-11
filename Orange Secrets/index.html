@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Orange Secrets</title>
+    <style>
+        body {
+            margin: 0%;
+            background-color : #ff6a00;
+        }
+
+        nav {
+            padding-top: 2%;
+            padding-left: 2%;
+            padding-right: 2%;
+            padding-bottom: 2%;
+            background-color: #2bb00b;
+            font-size: 130%;
+            color: #ffffff;
+        }
+        #chatroomdiv {
+            padding-top: 2%;
+            padding-left: 2%;
+            padding-right: 2%;
+            padding-bottom: 2%;
+            margin-top: 5%;
+            margin-left: 30%;
+            margin-right: 30%;
+            background-color: #ff0000;
+            display: none;
+            border-radius: 2%;
+            border: 2px solid #55de15;
+        }
+        #chatroom {
+            padding-top: 5%;
+            width: 95%;
+            padding-bottom: 5%;
+            margin-top: 1%;
+            margin-left: 2%;
+            text-align: center;
+            border: 2px solid #55de15;
+        }
+
+        #senddiv {
+            padding-top: 2%;
+            width: 96%;
+            padding-bottom: 2%;
+            margin-top: 0%;
+            margin-left: 2%;
+            text-align: center;
+            background-color: #ff0000;
+            color: #ffffff;
+            border: 2px solid #55de15;
+        }
+        #msgsdiv {
+            display: block;
+            padding-top: 2%;
+            height: 16em;
+            width: 96%;
+            background-color: #19b3d5;
+            color: #90239c;
+            margin-left: 2%;
+            margin-right: 2%;
+            border: 2px solid #55de15;
+            overflow: scroll;
+            text-align : center;
+        }
+
+        #usernamediv {
+            padding-top: 2%;
+            padding-left: 2%;
+            padding-right: 2%;
+            padding-bottom: 2%;
+            margin-top: 15%;
+            margin-left: 30%;
+            margin-right: 30%;
+            background-color: #ff0000;
+            border-radius: 10%;
+           border: 2px solid #55de15;
+        }
+
+        #username {
+            padding-top: 2%;
+            width: 95%;
+            padding-bottom: 2%;
+            margin-top: 2%;
+            margin-left: 2%;
+            text-align: center;
+            border: 2px solid #55de15;
+        }
+
+        #room {
+            padding-top: 2%;
+            width: 95%;
+            padding-bottom: 2%;
+            margin-top: 2%;
+            margin-left: 2%;
+            text-align: center;
+            border: 2px solid #55de15;
+        }
+
+        #selectdiv {
+            padding-top: 2%;
+            width: 96%;
+            padding-bottom: 2%;
+            margin-top: 1%;
+            margin-left: 2%;
+            text-align: center;
+            color: #ffffff;
+            background-color: #ff0000;
+            border: 2px solid #55de15;
+        }
+
+        #msgs {
+            padding-top: 5%;
+            padding-bottom: 5%;
+            width: 95%;
+            margin-left: 2%;
+            margin-top: 2%;
+            text-align: center;
+            border: 2px solid #55de15;
+        }
+
+    </style>
+</head>
+<body onload="">
+    <nav>Orange Secrets</nav>
+    <form id="form0">
+        <div id="usernamediv">
+            <input id="username" placeholder="Choose Username" />
+            <input id="room" placeholder="Chatroom" />
+            <button type="submit"  id="selectdiv" \>Select</button>
+        </div>
+    </form>
+    <form id="form1">
+        <div id="chatroomdiv">
+            <div id="msgsdiv">  </div>
+            <textarea id="msgs" placeholder="Write something...."></textarea>
+            <button  id="senddiv"  type="submit" \>Send</button>
+        </div>
+    </form>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+
+
+        $(function () {
+
+            var username;
+            var room;
+            var socket = io.connect();
+            var $form1 = $('#form1');
+            var $chatpage = $('#msgsdiv');
+            var $form0 = $('#form0');
+            var $message = $('#msgs');
+            var $username = $('#username');
+            var $room = $('#room');
+            var $error = $('#error');
+            var $chatroom = $('#chatroomdiv');
+            var $usernamediv = $('#usernamediv');
+
+            $form0.submit(function (e) {
+                e.preventDefault();
+                if ($username.val().length < 1 || $room.val().length < 1) {
+                   alert("make sure you filled all boxes")
+                }
+                else {
+                    socket.emit('add user', { username: $username.val(), room: $room.val() }, function (data) {
+                        if (data) {
+                            $usernamediv.hide();
+                            $chatroom.show();
+                        }
+                        else {
+                            alert("Username has already been taken!");
+                        }
+                    });
+                }
+            });
+
+            $form1.submit(function (e) {
+                e.preventDefault();
+                if ($message.val().length > 0) {
+                    socket.emit('sent message', $message.val());
+                    $message.val('');
+                }
+            });
+
+            socket.on('recieved message', function (data) {
+                $chatpage.append('<b>' + data.sentby + ': </b>' + data.message + '<br> <br>');
+            });
+
+            socket.on('declare username', function (data) {
+                $chatpage.append("<strong>" + data.username + " joined this conversation <strong> <br> <br>");
+            });
+
+
+
+
+            socket.on('disconnected', function (data) {
+                $chatpage.append("<strong>" + data.username + " left this conversation <strong> <br> <br>");
+            });
+        });
+
+
+
+    </script>
+
+</body>
+</html>
